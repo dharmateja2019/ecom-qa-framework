@@ -23,3 +23,12 @@ A user on the frontend would likely experience a broken or non-functional produc
 
 Using a fixture for the product catalogue API response allows you to centralize the setup and teardown of the API call. This promotes code reuse and makes your tests cleaner and more maintainable. It also ensures that all tests that depend on the product catalogue API response are using the same data, which can help reduce variability and improve test reliability. Additionally, if the API response changes or if you need to add additional setup steps (like authentication), you can do it in one place (the fixture) rather than in every test.
 Fixtures return data — they are not callable functions inside tests. If you need dynamic input per test, use parametrize with a direct call, not a fixture."
+
+## 6.when should you use autouse=True and when should you not?
+
+You should use autouse=True when you want a fixture to be automatically applied to all tests within a certain scope (e.g., module, session) without needing to explicitly include it in the test function's parameters. This is useful for setup tasks that are required for all tests, such as initializing a database connection or setting up test data.
+You should not use autouse=True when the fixture is only relevant for a subset of tests or when it performs actions that are not needed for every test. Using autouse=True in such cases can lead to unnecessary overhead and can make it harder to understand which tests are affected by the fixture. It can also lead to unintended side effects if the fixture modifies shared state or has performance implications.
+
+## 7.should a fixture return a raw response object or parsed data, and why?
+
+A fixture should ideally return parsed data rather than a raw response object. This is because tests typically need to work with the data in a structured format (e.g., a dictionary or list) rather than dealing with the raw response, which may require additional parsing in each test. Returning parsed data from the fixture promotes code reuse and keeps the tests cleaner and more focused on assertions rather than setup. It also abstracts away the details of how the data is retrieved and parsed, allowing tests to be more concise and easier to read.

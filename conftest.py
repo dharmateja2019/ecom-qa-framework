@@ -5,4 +5,4 @@ from utils.api_client import *
 def product_catalogue():
   get_response = get("/products")
   assert get_response.status_code == 200, "Failed to fetch product catalogue"
-  return get_response
+  return get_response.json()

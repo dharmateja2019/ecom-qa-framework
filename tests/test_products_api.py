@@ -11,7 +11,7 @@ from utils.api_client import *
     # Write this test yourself. Call it test_all_products_returns_valid_catalogue.
 def test_all_products_returns_valid_catalogue(product_catalogue):
   get_response = product_catalogue  # Using fixture from conftest.py
-  products = get_response.json()
+  products = get_response
   assert isinstance(products, list)
   assert len(products) > 0
   for product in products:
@@ -57,9 +57,8 @@ def test_invalid_product_id_returns_expected_response():
     # Business context: if the product API takes more than 2 seconds, the website feels broken. Performance is a business requirement, not optional.
     # Assert response.elapsed.total_seconds() < 2.
     # Call it test_products_api_responds_within_sla.
-def test_products_api_responds_within_sla(product_catalogue):
-  get_response = product_catalogue
-  response_time = get_response.elapsed.total_seconds()
+def test_products_api_responds_within_sla():
+  response_time =  get("/products").elapsed.total_seconds()
   print(f"Response time: {response_time} seconds")
   SLA_SECONDS = 2
   assert response_time < SLA_SECONDS, f"Response time {response_time:.2f}s exceeds SLA of {SLA_SECONDS}s"
