@@ -32,3 +32,9 @@ You should not use autouse=True when the fixture is only relevant for a subset o
 ## 7.should a fixture return a raw response object or parsed data, and why?
 
 A fixture should ideally return parsed data rather than a raw response object. This is because tests typically need to work with the data in a structured format (e.g., a dictionary or list) rather than dealing with the raw response, which may require additional parsing in each test. Returning parsed data from the fixture promotes code reuse and keeps the tests cleaner and more focused on assertions rather than setup. It also abstracts away the details of how the data is retrieved and parsed, allowing tests to be more concise and easier to read.
+
+## 8."Why does the SLA test make its own API call instead of using the product_catalogue fixture?"
+
+Fixtures are basically used for setup ,teardown methods for prerequisuite for tc's whaich are shared among the tc once or multiple times based on the scope and in SLA we can't use fixtures the response time will automatically change every second and fixture won't share the response time something like that. so we need to call api instead.
+Fixture responses with scope="session" run at the very beginning of the test suite. By the time your SLA test executes, that response could be 30 seconds old. You'd be asserting elapsed time from 30 seconds ago — completely meaningless for performance validation. Your test would pass even if the API is now timing out.
+So the rule is: any test that measures time-sensitive behaviour must make its own live call. Never rely on cached data for performance assertions.
