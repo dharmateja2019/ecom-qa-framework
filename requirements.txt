@@ -1,3 +1,6 @@
 # API testing dependencies
 pytest
 requests
+
+# UI testing dependencies
+pytest-playwright
