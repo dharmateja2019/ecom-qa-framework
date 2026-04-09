@@ -12,5 +12,5 @@ class HomePage(BasePage):
         return self.page.locator(self.PRODUCT_ITEMS).count()
     
     def is_loaded(self):
-        return self.page.locator(self.PRODUCT_COUNT_LABEL).is_visible()
+        return self.page.locator(self.PRODUCT_COUNT_LABEL).first.is_visible()
   
