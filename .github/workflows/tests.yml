@@ -26,8 +26,6 @@ jobs:
           playwright install chromium
 
       - name: Run smoke tests
-        env:
-          BASE_URL: https://fakestoreapi.com
         run: pytest tests/ -v -m smoke
 
   regression-tests:
@@ -50,6 +48,4 @@ jobs:
           playwright install chromium
 
       - name: Run regression tests
-        env:
-          BASE_URL: https://fakestoreapi.com
         run: pytest tests/ -v -m regression
