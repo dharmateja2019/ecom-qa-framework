@@ -1,7 +1,7 @@
 from pages.base_page import BasePage
 class HomePage(BasePage):
   # Locators — all in one place
-    PRODUCT_COUNT_LABEL = ".list-item-subheader"
+    PRODUCT_COUNT_LABEL = ".resources-container"
     PRODUCT_ITEMS = ".MuiGrid-item"
     
     def get_product_count_from_ui(self):
@@ -12,5 +12,5 @@ class HomePage(BasePage):
         return self.page.locator(self.PRODUCT_ITEMS).count()
     
     def is_loaded(self):
-        return self.page.locator(self.PRODUCT_COUNT_LABEL).first.is_visible()
+        return self.page.locator(self.PRODUCT_COUNT_LABEL).first.text_content() is not None
   
