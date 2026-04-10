@@ -9,3 +9,9 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+allure-results/
+reports/
+screenshots/
+*.log
+.idea/
+*.iml
