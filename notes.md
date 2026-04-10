@@ -1,40 +1,160 @@
-## 1.what is the difference between asserting expected behaviour vs actual behaviour, and when do you choose each?
+# QA Automation Notes (API + UI + CI/CD)
 
-First is about asserting expected behaviour, where you have a clear expectation of what the output should be based on the requirements. You choose this when you have well-defined requirements and want to ensure the system behaves as intended.
-Second is about asserting actual behaviour, where you observe the system's output without a predefined expectation. You choose this when you want to understand how the system currently behaves, especially in cases where requirements are not clear or when investigating issues.
+---
 
-## 2.why did you check curl AND the browser instead of just trusting the test failure?
+## 1. Expected vs Actual Behaviour
 
-Checking both curl and the browser allows you to confirm that the issue is not specific to one method of accessing the API. Curl can help you see the raw response and headers, while the browser can show you how the response is rendered in a user-friendly way. This helps ensure that the bug is consistent across different access methods and provides more context for debugging.
+- **Expected Behaviour**: Validate against predefined requirements
+  👉 Use when requirements are clear
 
-## 3.what would happen to a user on the frontend because of this bug?
+- **Actual Behaviour**: Observe system output without strict expectation
+  👉 Use for debugging, exploratory testing
 
-A user on the frontend would likely experience a broken or non-functional product listing page. They might see an error message, incomplete data, or no products at all when trying to access the products page. This would lead to a poor user experience and could result in lost sales or decreased trust in the website.
+---
 
-## 4.what are the different types of assertions you can do in API testing, and when would you use each?
+## 2. Why Check curl + Browser?
 
-- Status code assertions: Used to verify that the API returns the expected HTTP status code (e.g., 200 for success, 400 for bad request). This is a basic check to ensure the API is responding correctly.
-- Response body assertions: Used to check that the response contains the expected data or structure. This is important for validating that the API returns the correct information.
-- Header assertions: Used to verify that the response headers contain expected values (e.g., content-type, cache-control). This can be important for ensuring proper handling of the response by clients.
-- Performance assertions: Used to check that the API responds within an acceptable time frame. This is crucial for ensuring a good user experience and meeting service level agreements (SLAs).
-- Error handling assertions: Used to verify that the API returns appropriate error messages and status codes when invalid requests are made. This is important for ensuring that the API handles errors gracefully and provides useful feedback to developers and users.
+- `curl` → raw response (status, headers, JSON)
+- Browser → UI rendering
 
-## 5.why did you choose to use a fixture for the product catalogue API response instead of calling the API directly in each test?
+✅ Ensures issue is not tool-specific
+✅ Helps isolate backend vs frontend problems
 
-Using a fixture for the product catalogue API response allows you to centralize the setup and teardown of the API call. This promotes code reuse and makes your tests cleaner and more maintainable. It also ensures that all tests that depend on the product catalogue API response are using the same data, which can help reduce variability and improve test reliability. Additionally, if the API response changes or if you need to add additional setup steps (like authentication), you can do it in one place (the fixture) rather than in every test.
-Fixtures return data — they are not callable functions inside tests. If you need dynamic input per test, use parametrize with a direct call, not a fixture."
+---
 
-## 6.when should you use autouse=True and when should you not?
+## 3. Frontend Impact of API Bug
 
-You should use autouse=True when you want a fixture to be automatically applied to all tests within a certain scope (e.g., module, session) without needing to explicitly include it in the test function's parameters. This is useful for setup tasks that are required for all tests, such as initializing a database connection or setting up test data.
-You should not use autouse=True when the fixture is only relevant for a subset of tests or when it performs actions that are not needed for every test. Using autouse=True in such cases can lead to unnecessary overhead and can make it harder to understand which tests are affected by the fixture. It can also lead to unintended side effects if the fixture modifies shared state or has performance implications.
+- Broken product listing
+- Missing/incorrect data
+- Poor UX → loss of trust/revenue
 
-## 7.should a fixture return a raw response object or parsed data, and why?
+---
 
-A fixture should ideally return parsed data rather than a raw response object. This is because tests typically need to work with the data in a structured format (e.g., a dictionary or list) rather than dealing with the raw response, which may require additional parsing in each test. Returning parsed data from the fixture promotes code reuse and keeps the tests cleaner and more focused on assertions rather than setup. It also abstracts away the details of how the data is retrieved and parsed, allowing tests to be more concise and easier to read.
+## 4. Types of API Assertions
 
-## 8."Why does the SLA test make its own API call instead of using the product_catalogue fixture?"
+- **Status Code** → API success/failure
+- **Response Body** → Data correctness
+- **Headers** → metadata validation
+- **Performance (SLA)** → response time
+- **Error Handling** → invalid inputs
 
-Fixtures are basically used for setup ,teardown methods for prerequisuite for tc's whaich are shared among the tc once or multiple times based on the scope and in SLA we can't use fixtures the response time will automatically change every second and fixture won't share the response time something like that. so we need to call api instead.
-Fixture responses with scope="session" run at the very beginning of the test suite. By the time your SLA test executes, that response could be 30 seconds old. You'd be asserting elapsed time from 30 seconds ago — completely meaningless for performance validation. Your test would pass even if the API is now timing out.
-So the rule is: any test that measures time-sensitive behaviour must make its own live call. Never rely on cached data for performance assertions.
+---
+
+## 5. Why Use Fixtures?
+
+- Reusable setup
+- Cleaner tests
+- Centralized logic
+
+⚠️ Rule:
+
+- Use fixture for **static/shared data**
+- Avoid for **dynamic inputs (use parametrize)**
+
+---
+
+## 6. autouse=True Usage
+
+Use when:
+
+- Common setup required for all tests
+
+Avoid when:
+
+- Only some tests need it
+- Adds unnecessary overhead
+
+---
+
+## 7. Fixture Return Type
+
+✅ Return parsed data (JSON)
+❌ Avoid raw response unless needed
+
+---
+
+## 8. Why SLA Test Avoids Fixtures
+
+- Fixture data is cached (session scope)
+- SLA requires **real-time measurement**
+
+👉 Always make fresh API call for performance tests
+
+---
+
+## 9. API Blocking in CI/CD (GitHub Actions)
+
+### Problem
+
+Tests failed in CI but passed locally.
+
+### Root Cause
+
+- Public APIs block CI IPs
+- Rate limiting / instability
+
+---
+
+### Solution
+
+- Use environment variables for BASE_URL
+- Avoid hardcoded endpoints
+- Skip invalid UI-API tests
+
+---
+
+## 10. CI/CD Enhancements
+
+### Environment Config
+
+```python
+BASE_URL = os.getenv("BASE_URL", "https://dummyjson.com")
+```
+
+---
+
+### Mocking (Recommended)
+
+```python
+page.route("**/products", lambda route: route.fulfill(
+    status=200,
+    body='{"products":[{"id":1,"title":"Mock Product","price":100}]}'
+))
+```
+
+---
+
+### Retry (Optional)
+
+- Helps flaky tests
+- Should not hide real issues
+
+---
+
+### Test Strategy
+
+- Smoke → real API
+- Regression → mocked
+
+---
+
+### Skip Invalid Tests
+
+```python
+@pytest.mark.skip(reason="UI does not display product count reliably")
+```
+
+---
+
+## 11. Key QA Principles
+
+- Do not depend on external systems
+- Validate layers independently (API vs UI)
+- Avoid flaky assertions
+- Use mocks for stability
+
+---
+
+## 12. Interview Insight
+
+“In CI/CD, external APIs can be unreliable. I used environment-based configuration and mocking to ensure stable, deterministic test execution.”
