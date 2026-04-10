@@ -117,7 +117,6 @@ Push → Smoke Tests → Regression Tests → Report Upload
 
 ### ✅ Use
 
-- Mocking
 - Environment variables
 - Parallel execution
 
@@ -135,7 +134,6 @@ Push → Smoke Tests → Regression Tests → Report Upload
 
 - Retry logic
 - Timeout handling
-- Mock APIs
 - Skip flaky tests
 
 ---

@@ -9,5 +9,6 @@ class HomePage(BasePage):
     
     
     def is_loaded(self):
-        return self.page.locator(self.PRODUCT_COUNT_LABEL).first.text_content() is not None
+        self.page.wait_for_selector(self.PRODUCT_COUNT_LABEL, timeout=5000)
+        return self.page.locator(self.PRODUCT_COUNT_LABEL).is_visible()
   

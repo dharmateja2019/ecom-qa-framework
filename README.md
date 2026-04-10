@@ -1,143 +1,60 @@
-# 🛒 E-Commerce QA Automation Framework
+# E-Commerce QA Automation Framework
 
-## 🚀 Overview
+API and UI test automation framework for an e-commerce domain.
+Built from scratch over 4 days as a learning project to own
+every line of code.
 
-A production-ready QA automation framework combining **API + UI testing** using:
+## Tech stack
 
-- Pytest
-- Playwright
-- Allure Reports
+- Python, Pytest
+- Playwright (UI testing)
+- Requests (API testing)
 - GitHub Actions (CI/CD)
 
----
+## Project structure
 
-## 🧩 Features
-
-- ✅ API Testing (REST)
-- ✅ UI Testing (Playwright)
-- ✅ Parallel Execution (`pytest-xdist`)
-- ✅ CI/CD Pipeline (GitHub Actions)
-- ✅ Allure Reporting
-- ✅ Environment-based configuration
-- ✅ Mocking support (for CI stability)
-
----
-
-## 🏗️ Tech Stack
-
-- Python
-- Pytest
-- Playwright
-- Requests
-- Allure
-- GitHub Actions
-
----
-
-## 📂 Project Structure
-
-```
 ecom-qa-framework/
-│
-├── tests/
-│   ├── api/
-│   ├── ui/
-│
-├── pages/
-├── utils/
-├── conftest.py
-├── pytest.ini
-├── requirements.txt
-```
+tests/
+api/ — API test suite
+ui/ — UI test suite
+pages/ — Page Object Model classes
+utils/ — API client
+config/ — Environment settings
+conftest.py — Shared fixtures
+pytest.ini — Pytest configuration
 
----
+## Setup
 
-## ⚙️ Setup
-
-```bash
-git clone <repo>
-cd ecom-qa-framework
 pip install -r requirements.txt
-playwright install
-```
+playwright install chromium
 
----
+## Run tests
 
-## ▶️ Run Tests
+pytest tests/ -v # full suite
+pytest tests/ -v -m smoke # smoke only
+pytest tests/ -v -m regression # regression only
 
-### Smoke Tests
+## Environment config
 
-```bash
-pytest -m smoke
-```
+BASE_URL=https://dummyjson.com pytest tests/ -v
 
-### Regression Tests
+## CI/CD
 
-```bash
-pytest -m regression
-```
+GitHub Actions runs smoke tests on every push.
+Regression tests run after smoke passes.
+See .github/workflows/tests.yml
 
-### Parallel Execution
+## What I built and can explain
 
-```bash
-pytest -n auto
-```
+- API client with timeout and environment config
+- Session-scoped fixtures for shared test data
+- Parametrized tests across product IDs and categories
+- Page Object Model with BasePage inheritance
+- Smoke vs regression marker strategy
+- Integration test that validates API data matches UI
+- Found and documented a real API bug (GET /products/99999
+  returns 200 with null body instead of 404)
 
----
+## Known issues
 
-## 📊 Reports
-
-### Allure
-
-```bash
-pytest --alluredir=allure-results
-allure serve allure-results
-```
-
----
-
-## 🔄 CI/CD
-
-- Runs on push & PR
-- Smoke → Regression flow
-- Parallel execution
-- Artifact upload
-
----
-
-## ⚠️ Challenges & Solutions
-
-### Problem:
-
-API blocked in CI
-
-### Solution:
-
-- Used environment variables
-- Introduced mocking
-- Skipped invalid UI assertions
-
----
-
-## 🎯 Future Enhancements
-
-- Contract testing (JSON schema)
-- Visual UI testing
-- Service virtualization
-- Test data management
-
----
-
-## 💡 Author
-
-Dharmateja – QA Automation Engineer
-
----
-
-## 🧠 Key Learning
-
-Reliable automation =
-✔ Independent
-✔ Stable
-✔ CI-friendly
-✔ Scalable
+- fakestor.com is unrealiable due to block by github actions IPs

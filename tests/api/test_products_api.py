@@ -12,8 +12,8 @@ from config.settings import SLA_SECONDS
     # Write this test yourself. Call it test_all_products_returns_valid_catalogue.
 @pytest.mark.smoke
 def test_all_products_returns_valid_catalogue(product_catalogue):
-  get_response = product_catalogue  # Using fixture from conftest.py
-  products = get_response['products']
+  # Using fixture from conftest.py
+  products = product_catalogue
   assert isinstance(products, list)
   assert len(products) > 0
   for product in products:
