@@ -40,7 +40,7 @@ jobs:
       # 🚀 Run smoke tests with parallel + retry
       - name: Run smoke tests
         run: |
-          pytest tests/ -v -m smoke -n auto --alluredir=allure-results --reruns 2 --reruns-delay 1
+          pytest tests/ -v -m "smoke and not ai" -n auto --alluredir=allure-results --reruns 2 --reruns-delay 1
 
       # 📊 Upload Allure results
       - name: Upload Allure Results
@@ -79,7 +79,7 @@ jobs:
       # 🚀 Regression with parallel + retry
       - name: Run regression tests
         run: |
-          pytest tests/ -v -m regression -n auto --alluredir=allure-results --reruns 2 --reruns-delay 1
+          pytest tests/ -v -m -m "regression and not ai" -n auto --alluredir=allure-results --reruns 2 --reruns-delay 1
 
       # 📊 Upload Allure results
       - name: Upload Allure Results

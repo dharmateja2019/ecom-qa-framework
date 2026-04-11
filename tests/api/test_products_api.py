@@ -13,7 +13,7 @@ from config.settings import SLA_SECONDS
 @pytest.mark.smoke
 def test_all_products_returns_valid_catalogue(product_catalogue):
   # Using fixture from conftest.py
-  products = product_catalogue
+  products = product_catalogue()['products']
   assert isinstance(products, list)
   assert len(products) > 0
   for product in products:
@@ -76,10 +76,8 @@ def test_products_api_responds_within_sla():
     "fragrances",
     "smartphones",
 ])
-def test_each_category_returns_correct_products(category):
-    response = get(f"/products/category/{category}")
-    assert response.status_code == 200
-    products = response.json()["products"]
+def test_each_category_returns_correct_products(category, get_category_products):
+    products = get_category_products(category)
     assert len(products) > 0
     for product in products:
         assert product["category"].lower() == category.lower()
