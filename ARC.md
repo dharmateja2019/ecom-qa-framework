@@ -1,157 +1,83 @@
-# 🏗️ QA Automation Architecture (ARC)
+# QA Automation Architecture
 
----
+## High-Level Architecture
 
-## 1. High-Level Architecture
-
-```
             ┌──────────────┐
             │   Test Layer │
-            │ (Pytest)     │
+            │   (Pytest)   │
             └──────┬───────┘
                    │
         ┌──────────┴──────────┐
         │                     │
- ┌──────────────┐     ┌──────────────┐
- │ API Layer    │     │ UI Layer     │
- │ (Requests)   │     │ (Playwright) │
- └──────┬───────┘     └──────┬───────┘
-        │                     │
-        └──────────┬──────────┘
-                   │
-           ┌──────────────┐
-           │ Application  │
-           │ (DummyJSON)  │
-           └──────────────┘
-```
 
----
+┌──────────────┐ ┌──────────────┐
+│ API Layer │ │ UI Layer │
+│ (Requests) │ │ (Playwright) │
+└──────┬───────┘ └──────┬───────┘
+│ │
+└──────────┬──────────┘
+│
+┌──────────────┐
+│ Application │
+│ (DummyJSON) │
+└──────────────┘
 
-## 2. Components
+## Why API, UI, and AI are in separate folders
 
-### 🔹 Test Layer
+Each layer has a different execution requirement. API tests
+run fast with no browser — suitable for every commit. UI tests
+are slower and need a browser installed. AI tests require a
+local Ollama server and cannot run in CI. Separating them means
+you can run pytest -m "not ai" in CI and pytest tests/ai/
+locally without mixing concerns.
 
-- Pytest
-- Parametrization
-- Markers (smoke, regression)
+## Why session scope vs factory fixture
 
----
+Session scope is used when the data doesn't change between
+tests — for example fetching the product catalogue once and
+sharing it across all tests that need it. This avoids repeated
+API calls and speeds up the suite.
 
-### 🔹 API Layer
+Factory fixtures return a function instead of data directly.
+This is used when tests need to pass different arguments — for
+example get_product(1), get_product(2). A regular session
+fixture cannot accept arguments from tests. The factory pattern
+solves this while still living in conftest.py.
 
-- Requests library
-- API client abstraction
-- Handles:
-  - GET/POST calls
-  - Response parsing
-  - Validation
+## Why conftest.py lives at the root
 
----
+Pytest automatically discovers conftest.py files and makes
+their fixtures available to all tests in the same directory
+and below. A root-level conftest.py means every test file —
+api, ui, ai — can use the same fixtures without importing
+anything. If conftest.py lived inside tests/api/, the UI tests
+would not see those fixtures.
 
-### 🔹 UI Layer
+## Test strategy
 
-- Playwright
-- Page Object Model (POM)
+| Layer | Marker     | Runs in CI | Runs locally |
+| ----- | ---------- | ---------- | ------------ |
+| API   | smoke      | Yes        | Yes          |
+| API   | regression | Yes        | Yes          |
+| UI    | smoke      | Yes        | Yes          |
+| UI    | regression | Yes        | Yes          |
+| AI    | ai         | No         | Yes          |
 
-Example:
+## CI/CD flow
 
-```
-HomePage → locators + actions
-```
+Push to main
+→ Smoke tests (API + UI, parallel)
+→ Regression tests (API + UI, parallel, needs smoke pass)
+→ Allure results uploaded as artifact
 
----
+## Design decisions
 
-### 🔹 Utility Layer
+Do not use the same fixture for SLA tests. Response time
+must be measured from a live call — cached data from a
+session fixture would measure elapsed time from when the
+fixture ran, not when the test ran.
 
-- API client
-- Config handling
-- Helpers
-
----
-
-## 3. Design Patterns
-
-### ✅ Page Object Model (POM)
-
-- Separates UI logic from tests
-
----
-
-### ✅ Fixture-Based Setup
-
-- Shared test setup
-- Reusable data
-
----
-
-### ✅ Factory Fixture
-
-- Dynamic API calls inside fixtures
-
----
-
-## 4. Test Strategy
-
-| Layer       | Purpose            |
-| ----------- | ------------------ |
-| API         | Validate backend   |
-| UI          | Validate user flow |
-| Integration | Optional           |
-
----
-
-## 5. CI/CD Flow
-
-```
-Push → Smoke Tests → Regression Tests → Report Upload
-```
-
----
-
-## 6. Key Design Decisions
-
-### ❌ Avoid
-
-- API ↔ UI tight coupling
-- External dependency in CI
-
-### ✅ Use
-
-- Environment variables
-- Parallel execution
-
----
-
-## 7. Scalability Considerations
-
-- Add new APIs → extend API client
-- Add UI pages → new POM classes
-- Add environments → env configs
-
----
-
-## 8. Reliability Improvements
-
-- Retry logic
-- Timeout handling
-- Skip flaky tests
-
----
-
-## 9. Future Architecture Enhancements
-
-- Service virtualization (WireMock)
-- Contract testing (JSON schema)
-- Dockerized test execution
-- Distributed test execution
-
----
-
-## 10. Summary
-
-This framework is designed to be:
-
-- Modular
-- Scalable
-- CI/CD ready
-- Industry aligned
+AI tests use pytest.skip when Ollama is unavailable rather
+than failing. Infrastructure failure is different from a
+test failure. A failing test means the code has a bug. A
+skipped test means a dependency was unavailable.

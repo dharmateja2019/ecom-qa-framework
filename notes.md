@@ -1,160 +1,96 @@
-# QA Automation Notes (API + UI + CI/CD)
+# Interview Stories
 
----
+## Story 1 — API bug: 200 instead of 404
 
-## 1. Expected vs Actual Behaviour
+While testing the products API on fakestoreapi, I wrote a test
+for GET /products/99999 expecting a 404 since the product
+doesn't exist. The test failed — the API was returning 200
+with a null body.
 
-- **Expected Behaviour**: Validate against predefined requirements
-  👉 Use when requirements are clear
+I didn't assume my test was wrong. I verified through three
+channels: the test failure message, curl in the terminal, and
+opening the URL directly in the browser. All three confirmed
+the same thing — 200 with null.
 
-- **Actual Behaviour**: Observe system output without strict expectation
-  👉 Use for debugging, exploratory testing
+I documented it as a bug in the test with a comment explaining
+the business impact: a frontend that checks status codes to
+handle errors would receive 200 and assume success, rendering
+a blank product page with no error message shown to the user.
+I updated the assertion to reflect actual behaviour and noted
+it as a known bug.
 
----
+What I learned: always verify through multiple channels before
+deciding whether the test or the code is wrong. And always
+document the business impact of a bug, not just the technical
+detail.
 
-## 2. Why Check curl + Browser?
+## Story 2 — Cloudflare 403 blocking CI
 
-- `curl` → raw response (status, headers, JSON)
-- Browser → UI rendering
+My tests passed locally but failed in GitHub Actions with a
+403 status code. The error was "Failed to fetch product
+catalogue — assert 403 == 200".
 
-✅ Ensures issue is not tool-specific
-✅ Helps isolate backend vs frontend problems
+I investigated by reading the CI logs carefully. The response
+body said "Just a moment..." which is a Cloudflare challenge
+page. I understood that GitHub Actions servers use known IP
+ranges that Cloudflare identifies as automated traffic and
+blocks.
 
----
+The fix was migrating from fakestoreapi to DummyJSON which
+is built specifically for developer tooling and allows
+automation traffic. I also updated all response assertions
+because DummyJSON wraps the products array inside a products
+key with pagination metadata, whereas fakestoreapi returned
+a plain array.
 
-## 3. Frontend Impact of API Bug
+What I learned: tests passing locally but failing in CI almost
+always means an environment difference. Always read the actual
+error response, not just the status code. And always verify
+that the APIs you depend on allow traffic from CI environments.
 
-- Broken product listing
-- Missing/incorrect data
-- Poor UX → loss of trust/revenue
+## Story 3 — fixture return type error
 
----
+I updated my product_catalogue fixture to return response.json()
+instead of the response object. My test immediately threw
+AttributeError: list object has no attribute json.
 
-## 4. Types of API Assertions
+I read the error carefully. The fixture was now returning a
+Python list — the parsed product array. But my test was still
+calling .json() on it as if it were a response object. The
+fixture return type changed but the tests weren't updated.
 
-- **Status Code** → API success/failure
-- **Response Body** → Data correctness
-- **Headers** → metadata validation
-- **Performance (SLA)** → response time
-- **Error Handling** → invalid inputs
+The fix was updating every test that used the fixture to work
+with the list directly instead of calling .json() on it. I
+also learned that the SLA test cannot use a cached fixture
+at all — it needs to make its own live API call to measure
+real response time, because a cached response has an elapsed
+time from when the fixture ran, not when the test ran.
 
----
+What I learned: when you change what a fixture returns, you
+must audit every test that uses it. And always distinguish
+between data fixtures (return parsed data) and measurement
+tests (must make their own live call).
 
-## 5. Why Use Fixtures?
+## Key concepts I can explain
 
-- Reusable setup
-- Cleaner tests
-- Centralized logic
+Fixtures: prerequisite setup shared across tests. Scope
+controls how often setup runs — session means once per suite,
+function means once per test.
 
-⚠️ Rule:
+Factory fixtures: return a callable instead of data, allowing
+tests to pass dynamic arguments. Used when different tests
+need the same endpoint with different parameters.
 
-- Use fixture for **static/shared data**
-- Avoid for **dynamic inputs (use parametrize)**
+Flaky tests: tests that pass and fail inconsistently without
+code changes. Caused by timing issues, network variability,
+or shared state between tests. Fixed with explicit waits,
+retry logic, and test isolation.
 
----
+POM: locators and page actions live in page classes, not in
+test files. When a UI element changes, you update one file
+and all tests that use that page are fixed automatically.
 
-## 6. autouse=True Usage
-
-Use when:
-
-- Common setup required for all tests
-
-Avoid when:
-
-- Only some tests need it
-- Adds unnecessary overhead
-
----
-
-## 7. Fixture Return Type
-
-✅ Return parsed data (JSON)
-❌ Avoid raw response unless needed
-
----
-
-## 8. Why SLA Test Avoids Fixtures
-
-- Fixture data is cached (session scope)
-- SLA requires **real-time measurement**
-
-👉 Always make fresh API call for performance tests
-
----
-
-## 9. API Blocking in CI/CD (GitHub Actions)
-
-### Problem
-
-Tests failed in CI but passed locally.
-
-### Root Cause
-
-- Public APIs block CI IPs
-- Rate limiting / instability
-
----
-
-### Solution
-
-- Use environment variables for BASE_URL
-- Avoid hardcoded endpoints
-- Skip invalid UI-API tests
-
----
-
-## 10. CI/CD Enhancements
-
-### Environment Config
-
-```python
-BASE_URL = os.getenv("BASE_URL", "https://dummyjson.com")
-```
-
----
-
-### Mocking (Recommended)
-
-```python
-page.route("**/products", lambda route: route.fulfill(
-    status=200,
-    body='{"products":[{"id":1,"title":"Mock Product","price":100}]}'
-))
-```
-
----
-
-### Retry (Optional)
-
-- Helps flaky tests
-- Should not hide real issues
-
----
-
-### Test Strategy
-
-- Smoke → real API
-- Regression → mocked
-
----
-
-### Skip Invalid Tests
-
-```python
-@pytest.mark.skip(reason="UI does not display product count reliably")
-```
-
----
-
-## 11. Key QA Principles
-
-- Do not depend on external systems
-- Validate layers independently (API vs UI)
-- Avoid flaky assertions
-- Use mocks for stability
-
----
-
-## 12. Interview Insight
-
-“In CI/CD, external APIs can be unreliable. I used environment-based configuration and mocking to ensure stable, deterministic test execution.”
+AI validation vs hard assertions: hard assertions check exact
+values. LLM validation checks semantic quality — whether data
+makes sense in a business context. Useful for catching
+realistic-looking but wrong data that passes all field checks.
