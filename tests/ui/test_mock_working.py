@@ -1,5 +1,7 @@
 import json
 
+import pytest
+@pytest.mark.regression
 def test_mock_products_api(page):
     # Step 1: Mock API
     page.route("**/products", lambda route: route.fulfill(
@@ -25,7 +27,7 @@ def test_mock_products_api(page):
 
     # Step 4: Validate mocked response
     assert result["products"][0]["title"] == "Mocked Product"
-
+@pytest.mark.regression
 def test_mock_with_ui_render(page):
     import json
 
