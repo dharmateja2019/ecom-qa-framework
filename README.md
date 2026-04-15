@@ -13,7 +13,8 @@ Built from scratch to simulate real-world testing challenges including data vali
 - LLM-based validation using local models (Ollama)
 - Environment-based execution (staging/production)
 
-📐 Test Strategy (Test Pyramid)
+## 📐 Test Strategy (Test Pyramid)
+
 The framework follows the Test Pyramid approach:
 
 - API Tests (Majority) → Fast, reliable, run on every commit
@@ -22,7 +23,8 @@ The framework follows the Test Pyramid approach:
 
 This ensures faster feedback cycles while maintaining high coverage.
 
-🏗️ Architecture Overview
+## 🏗️ Architecture Overview
+
 The framework is designed using a layered architecture:
 
 - Test Layer (Pytest) → Test definitions and assertions
@@ -32,7 +34,7 @@ The framework is designed using a layered architecture:
 
 Each layer is isolated to ensure maintainability, scalability, and independent execution.
 
-🧠 Key Design Decisions
+## 🧠 Key Design Decisions
 
 - Used session fixtures for static data to reduce API calls and improve speed
 - Used factory fixtures for dynamic data generation across tests
@@ -40,7 +42,7 @@ Each layer is isolated to ensure maintainability, scalability, and independent e
 - Excluded AI tests from CI due to infrastructure dependency (Ollama)
 - Avoided caching for SLA tests to ensure accurate performance measurement
 
-🐞 Bugs Identified During Testing
+## 🐞 Bugs Identified During Testing
 
 - GET /products/{id} returns HTTP 200 with null body instead of 404
   → Impact: Frontend cannot distinguish between valid and invalid responses
