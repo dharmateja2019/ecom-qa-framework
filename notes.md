@@ -94,3 +94,85 @@ AI validation vs hard assertions: hard assertions check exact
 values. LLM validation checks semantic quality — whether data
 makes sense in a business context. Useful for catching
 realistic-looking but wrong data that passes all field checks.
+
+## 1. Severity vs Priority
+
+Severity is how serious the defect is from a technical/system impact perspective.
+Priority is how urgently the defect should be fixed from a business perspective.
+
+## 👉 In simple terms:
+
+Severity = How bad is the problem?
+Priority = How fast should we fix it?
+Example (from your kind of Macrometa work)
+
+## Suppose:
+
+The UI button color is wrong → looks bad but system works
+Severity: Low
+Priority: High (if client-facing release)
+The API returns incorrect data but UI is not yet using it
+Severity: High (data issue is critical)
+Priority: Medium (not impacting users immediately)
+
+## 💡 Interview tip: Always show that severity = technical impact, priority = business decision.
+
+## 2. Defect Life Cycle
+
+The defect life cycle describes the stages a bug goes through from identification to closure.
+
+## Typical stages:
+
+New
+Tester logs the defect
+Assigned
+Assigned to a developer
+Open / In Progress
+Developer starts working on it
+Fixed
+Developer resolves the issue
+Retest
+Tester verifies the fix
+Closed
+If working as expected
+Reopened (if needed)
+If issue still exists
+Deferred / Rejected / Duplicate (optional cases)
+Deferred → fix later
+Rejected → not a bug
+Duplicate → already reported
+
+## 💡 Real-world note: In Agile teams (like yours), tools like Jira manage these statuses.
+
+## 3. Smoke vs Sanity Testing
+
+These two confuse a lot of people — here’s the clean difference.
+
+Smoke Testing
+Done on a new build
+Checks if the application is stable enough for further testing
+Covers critical functionalities only
+
+## 👉 Example:
+
+App launches
+Login works
+Main page loads
+
+## ✔ Goal: “Is the build testable?”
+
+Sanity Testing
+Done after bug fixes or small changes
+Checks if the specific functionality works correctly
+Narrow and focused
+
+## 👉 Example:
+
+A login bug was fixed → test only login scenarios
+
+## ✔ Goal: “Did the fix work without breaking related areas?”
+
+## 🔥 Simple way to remember:
+
+Smoke = Build verification (broad, shallow)
+Sanity = Fix verification (narrow, deep)

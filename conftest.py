@@ -2,6 +2,7 @@ from urllib import response
 
 import pytest
 from utils.api_client import *
+from utils.db_helper import clear_products, setup_test_db
 
 
 @pytest.fixture(scope="session")
@@ -39,3 +40,10 @@ def auth_token():
   token = response.json()["accessToken"]
   assert token is not None, "No token returned"
   return token
+
+@pytest.fixture(autouse=True, scope="module")
+def db_setup():
+    setup_test_db()
+    clear_products()
+    yield
+    clear_products()
