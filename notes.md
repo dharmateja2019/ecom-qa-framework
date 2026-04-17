@@ -176,3 +176,13 @@ A login bug was fixed → test only login scenarios
 
 Smoke = Build verification (broad, shallow)
 Sanity = Fix verification (narrow, deep)
+
+## Story 4 — Public API Create Endpoint Was Non-Persistent
+
+I tested create-user followed by login/search using Faker-generated users. Although POST /users/add returned 201 Created, the new user could not login or appear in search.
+
+I concluded the public API simulates successful create responses but does not persist backend state.
+
+I adjusted the framework to validate create response contracts while using seeded users for login flows.
+
+What I learned: never assume POST success means real persistence. Verify lifecycle behavior.

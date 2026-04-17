@@ -50,13 +50,13 @@ Each layer is isolated to ensure maintainability, scalability, and independent e
 - Cloudflare blocking API requests in CI environment (403 error)
   → Solution: Migrated to DummyJSON for reliable automation execution
 
-## 🔮 Future Improvements
+## 🆕 Latest Enhancements
 
-- Add database validation layer
-- Implement API contract testing using JSON schema
-- Integrate Docker for environment consistency
-- Replace local LLM with hosted API for CI compatibility
-- Add visual regression testing for UI
+- SQLite database validation for API ↔ DB consistency
+- API contract testing using JSON Schema
+- Structured logging for CI debugging
+- Faker-powered dynamic test data generation
+- Authentication workflow coverage (login / token / protected APIs)
 
 ## 💡 What Makes This Framework Different
 
@@ -64,3 +64,11 @@ Each layer is isolated to ensure maintainability, scalability, and independent e
 - Includes AI-powered validation layer
 - Designed with real-world CI/CD constraints
 - Focuses on business logic validation, not just status codes
+
+## 📊 Current Test Coverage Snapshot
+
+- 40+ automated tests
+- Smoke + Regression suites
+- API / UI / DB / AI layers
+- GitHub Actions CI pipeline
+- Parallel execution enabled

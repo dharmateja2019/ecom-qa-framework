@@ -22,6 +22,18 @@
 │ (DummyJSON) │
 └──────────────┘
 
+## Extended Architecture
+
+            ┌──────────────┐
+            │   Test Layer │
+            └──────┬───────┘
+                   │
+
+┌─────────┬───────┼──────────┬──────────┐
+│ API │ UI │ DB │ AI │
+│Requests │PW │SQLite │Ollama │
+└─────────┴───────┴──────────┴──────────┘
+
 ## Why API, UI, and AI are in separate folders
 
 Each layer has a different execution requirement. API tests
@@ -81,3 +93,10 @@ AI tests use pytest.skip when Ollama is unavailable rather
 than failing. Infrastructure failure is different from a
 test failure. A failing test means the code has a bug. A
 skipped test means a dependency was unavailable.
+
+## Supporting Utilities
+
+- Logger utility for traceability
+- Faker utility for dynamic test data
+- Schema validator for contract testing
+- Fixtures for reusable setup
