@@ -67,7 +67,7 @@ Each layer is isolated to ensure maintainability, scalability, and independent e
 
 ## 📊 Current Test Coverage Snapshot
 
-- 40+ automated tests
+- 30+ automated tests
 - Smoke + Regression suites
 - API / UI / DB / AI layers
 - GitHub Actions CI pipeline
