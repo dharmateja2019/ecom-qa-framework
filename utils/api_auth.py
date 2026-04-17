@@ -21,7 +21,7 @@ def post_auth(endpoint, payload=None):
     return response
 
 def get_authenticated(endpoint, token, payload=None):
-  url = f"{BASE_URL}/{endpoint}"
+  url = f"{BASE_URL}{endpoint}"
   headers = {"Authorization": f"Bearer {token}"}
   response = requests.get(url, headers=headers, json=payload, timeout=TIMEOUT_SECONDS)
   return response
