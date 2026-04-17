@@ -1,4 +1,8 @@
 import sqlite3
+from utils.logger import get_logger
+
+logger = get_logger()
+
 
 DB_PATH = "test_data.db"
 
@@ -20,6 +24,7 @@ def setup_test_db():
     conn.close()
 
 def insert_product(id, title, price, category):
+    logger.info(f"Inserting product id={id}, title={title}")
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(
@@ -30,6 +35,7 @@ def insert_product(id, title, price, category):
     conn.close()
 
 def get_product_by_id(product_id):
+    logger.info(f"Fetching product id={product_id}")
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(
@@ -41,6 +47,7 @@ def get_product_by_id(product_id):
     return result
 
 def get_products_by_category(category):
+    logger.info(f"Fetching products category={category}")
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(
@@ -52,6 +59,7 @@ def get_products_by_category(category):
     return results
 
 def clear_products():
+    logger.info("Clearing products table")
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("DELETE FROM products")
