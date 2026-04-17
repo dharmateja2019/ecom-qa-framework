@@ -1,10 +1,41 @@
 import pytest
+from requests import post
 from utils.api_auth import post_auth, get_authenticated
+from utils.test_data import create_user_payload
+from utils.api_auth import add_user, search_user
+
+@pytest.mark.smoke
+def test_create_user():
+    payload = create_user_payload()
+
+    response = add_user(payload)
+    assert response.status_code == 201
+    data = response.json()
+    assert data["firstName"] == payload["firstName"]
+    assert "id" in data
+    assert data["username"] == payload["username"]
+    assert data["email"] == payload["email"]
+
+@pytest.mark.regression
+def test_search_user():
+    response = search_user("emilys")
+    
+    assert response.status_code == 200
+    data = response.json()
+    assert "users" in data
+    assert len(data["users"]) > 0
+    user = data["users"][0]
+    assert user["username"] == "emilys"
+    assert user["email"] == "emily.johnson@x.dummyjson.com"
 
 @pytest.mark.smoke
 def test_valid_login_returns_token():
-    payload = {"username": "emilys", "password": "emilyspass"}
-    response = post_auth("/auth/login", payload)
+    params = create_user_payload()
+    payload = payload = {
+        "username": "emilys",
+        "password": "emilyspass"
+    }
+    response = post_auth("auth/login", payload)
     
     assert response.status_code == 200
     data = response.json()
