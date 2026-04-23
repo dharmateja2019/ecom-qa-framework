@@ -1,0 +1,13 @@
+venv
+__pycache__
+.pytest_cache
+allure-results
+allure-report
+reports
+screenshots
+videos
+logs
+.git
+.idea
+.DS_Store
+node_modules

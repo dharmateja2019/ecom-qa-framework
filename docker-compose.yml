@@ -1,0 +1,10 @@
+services:
+  qa-tests:
+    build: .
+    container_name: qa-tests
+    environment:
+      - BASE_URL=https://dummyjson.com
+    volumes:
+      - ./reports:/app/reports
+      - ./test_data.db:/app/test_data.db
+    command: pytest tests/ -v -s
