@@ -1,0 +1,68 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = 'qa-tests:latest'
+        PYTHONUNBUFFERED = '1'
+    }
+
+    options {
+        timestamps()
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+    }
+
+    stages {
+
+        stage('Checkout Code') {
+            steps {
+                git branch: 'master',
+                    url: 'https://github.com/dharmateja2019/ecom-qa-framework.git'
+            }
+        }
+
+        // ---- Job 1: docker-test ----
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t ${IMAGE_NAME} .'
+            }
+        }
+
+        stage('Run API Tests in Container') {
+            steps {
+                sh 'docker run --rm ${IMAGE_NAME} pytest tests/api -v -s'
+            }
+            post {
+                always {
+                    sh 'docker rmi ${IMAGE_NAME} || true'
+                }
+            }
+        }
+
+        // ---- Job 2: compose-test (needs docker-test) ----
+        stage('Docker Compose Tests') {
+            steps {
+                sh 'docker compose up --build --abort-on-container-exit'
+            }
+            post {
+                always {
+                    // Equivalent to "if: always()" in GitHub Actions
+                    sh 'docker compose down -v || true'
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Docker pipeline completed successfully.'
+        }
+        failure {
+            echo 'Docker pipeline failed.'
+        }
+        always {
+            echo "Build Result: ${currentBuild.currentResult}"
+            // Clean up any leftover containers
+            sh 'docker system prune -f || true'
+        }
+    }
+}
