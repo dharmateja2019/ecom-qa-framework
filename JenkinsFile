@@ -15,6 +15,32 @@ pipeline {
 
     stages {
 
+        stage('Start Docker Engine') {
+            steps {
+                sh '''
+                    if /usr/local/bin/docker info > /dev/null 2>&1; then
+                        echo "OrbStack already running — skipping start"
+                        echo "false" > /tmp/orbstack_state.txt
+                    else
+                        echo "Starting OrbStack..."
+                        open -a OrbStack
+                        echo "true" > /tmp/orbstack_state.txt
+
+                        for i in {1..20}; do
+                            /usr/local/bin/docker info > /dev/null 2>&1 && echo "Docker ready!" && break
+                            echo "Waiting for Docker... attempt $i"
+                            sleep 2
+                        done
+
+                        /usr/local/bin/docker info > /dev/null 2>&1 || {
+                            echo "ERROR: Docker failed to start after 40 seconds"
+                            exit 1
+                        }
+                    fi
+                '''
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 sh '${DOCKER} build -t ${IMAGE_NAME} .'
@@ -53,7 +79,21 @@ pipeline {
         }
         always {
             echo "Build Result: ${currentBuild.currentResult}"
+
             sh '${DOCKER} system prune -f || true'
+
+            sh '''
+                if [ -f /tmp/orbstack_state.txt ]; then
+                    STATE=$(cat /tmp/orbstack_state.txt)
+                    if [ "$STATE" = "true" ]; then
+                        echo "Jenkins started OrbStack — shutting it down"
+                        osascript -e 'quit app "OrbStack"' || true
+                    else
+                        echo "OrbStack was already running — leaving it open"
+                    fi
+                    rm -f /tmp/orbstack_state.txt
+                fi
+            '''
         }
     }
 }
