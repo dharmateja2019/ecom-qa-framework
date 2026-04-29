@@ -2,10 +2,10 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = 'qa-tests:latest'
+        IMAGE_NAME       = 'qa-tests:latest'
         PYTHONUNBUFFERED = '1'
-        DOCKER = '/usr/local/bin/docker'
-        DOCKER_COMPOSE = '/usr/local/bin/docker'
+        DOCKER           = '/usr/local/bin/docker'
+        DOCKER_HOST      = 'unix:///Users/dharmateja/.orbstack/run/docker.sock'
     }
 
     options {
@@ -15,14 +15,6 @@ pipeline {
 
     stages {
 
-        stage('Checkout Code') {
-            steps {
-                git branch: 'master',
-                    url: 'https://github.com/dharmateja2019/ecom-qa-framework.git'
-            }
-        }
-
-        // ---- Job 1: docker-test ----
         stage('Build Docker Image') {
             steps {
                 sh '${DOCKER} build -t ${IMAGE_NAME} .'
@@ -40,15 +32,13 @@ pipeline {
             }
         }
 
-        // ---- Job 2: compose-test (needs docker-test) ----
         stage('Docker Compose Tests') {
             steps {
-                sh '${DOCKER_COMPOSE} up --build --abort-on-container-exit'
+                sh '${DOCKER} compose up --build --abort-on-container-exit'
             }
             post {
                 always {
-                    // Equivalent to "if: always()" in GitHub Actions
-                    sh '${DOCKER_COMPOSE} down -v || true'
+                    sh '${DOCKER} compose down -v || true'
                 }
             }
         }
@@ -63,9 +53,7 @@ pipeline {
         }
         always {
             echo "Build Result: ${currentBuild.currentResult}"
-            // Clean up any leftover containers
             sh '${DOCKER} system prune -f || true'
         }
     }
 }
-
