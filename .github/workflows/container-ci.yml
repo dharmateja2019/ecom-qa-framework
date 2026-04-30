@@ -19,7 +19,25 @@ jobs:
         run: docker build -t qa-tests:latest .
 
       - name: Run API tests in container
-        run: docker run qa-tests:latest pytest tests/api -v -s
+        run: docker run qa-tests:latest pytest tests/api -n auto --alluredir=allure-results --reruns 2 --reruns-delay 1
+
+      - name: Run UI tests in container
+        run: docker run qa-tests:latest pytest tests/ui -n auto --alluredir=allure-results --reruns 2 --reruns-delay 1
+
+      - name: Run DB tests in container
+        run: docker run qa-tests:latest pytest tests/db -n auto --alluredir=allure-results --reruns 2 --reruns-delay 1
+
+      - name: Run Smoke tests in container
+        run: docker run qa-tests:latest pytest tests/ -m smoke -n auto --alluredir=allure-results --reruns 2 --reruns-delay 1
+
+      - name: Run Regression tests in container
+        run: docker run qa-tests:latest pytest tests/ -m regression -n auto --alluredir=allure-results --reruns 2 --reruns-delay 1
+
+      - name: Upload Allure Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-regression
+          path: allure-results
 
   compose-test:
     name: Docker Compose Test
