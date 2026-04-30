@@ -8,8 +8,13 @@ on:
 
 jobs:
   docker-test:
-    name: Docker Image Test
+    name: Docker ${{ matrix.suite }} Tests
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [api, ui, db, smoke, regression]
 
     steps:
       - name: Checkout code
@@ -18,26 +23,48 @@ jobs:
       - name: Build Docker image
         run: docker build -t qa-tests:latest .
 
-      - name: Run API tests in container
-        run: docker run qa-tests:latest pytest tests/api -n auto --alluredir=allure-results --reruns 2 --reruns-delay 1
+      - name: Create Allure Results Folder
+        run: mkdir -p allure-results-${{ matrix.suite }}
 
-      - name: Run UI tests in container
-        run: docker run qa-tests:latest pytest tests/ui -n auto --alluredir=allure-results --reruns 2 --reruns-delay 1
+      - name: Run Selected Test Suite
+        run: |
+          if [ "${{ matrix.suite }}" = "api" ]; then
+            docker run --rm \
+              -v ${{ github.workspace }}/allure-results-api:/app/allure-results \
+              qa-tests:latest \
+              pytest tests/api -n auto --alluredir=allure-results --reruns 2 --reruns-delay 1
 
-      - name: Run DB tests in container
-        run: docker run qa-tests:latest pytest tests/db -n auto --alluredir=allure-results --reruns 2 --reruns-delay 1
+          elif [ "${{ matrix.suite }}" = "ui" ]; then
+            docker run --rm \
+              -v ${{ github.workspace }}/allure-results-ui:/app/allure-results \
+              qa-tests:latest \
+              pytest tests/ui -n auto --alluredir=allure-results --reruns 2 --reruns-delay 1
 
-      - name: Run Smoke tests in container
-        run: docker run qa-tests:latest pytest tests/ -m smoke -n auto --alluredir=allure-results --reruns 2 --reruns-delay 1
+          elif [ "${{ matrix.suite }}" = "db" ]; then
+            docker run --rm \
+              -v ${{ github.workspace }}/allure-results-db:/app/allure-results \
+              qa-tests:latest \
+              pytest tests/db -n auto --alluredir=allure-results --reruns 2 --reruns-delay 1
 
-      - name: Run Regression tests in container
-        run: docker run qa-tests:latest pytest tests/ -m regression -n auto --alluredir=allure-results --reruns 2 --reruns-delay 1
+          elif [ "${{ matrix.suite }}" = "smoke" ]; then
+            docker run --rm \
+              -v ${{ github.workspace }}/allure-results-smoke:/app/allure-results \
+              qa-tests:latest \
+              pytest tests/ -m smoke -n auto --alluredir=allure-results --reruns 2 --reruns-delay 1
+
+          else
+            docker run --rm \
+              -v ${{ github.workspace }}/allure-results-regression:/app/allure-results \
+              qa-tests:latest \
+              pytest tests/ -m regression -n auto --alluredir=allure-results --reruns 2 --reruns-delay 1
+          fi
 
       - name: Upload Allure Results
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: allure-results-regression
-          path: allure-results
+          name: allure-results-${{ matrix.suite }}
+          path: allure-results-${{ matrix.suite }}
 
   compose-test:
     name: Docker Compose Test
