@@ -2,98 +2,98 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME       = 'qa-tests:latest'
-        PYTHONUNBUFFERED = '1'
-        DOCKER           = '/usr/local/bin/docker'
-        DOCKER_HOST      = 'unix:///Users/dharmateja/.orbstack/run/docker.sock'
+        DOCKER_HOST = "unix:///Users/dharmateja/.orbstack/run/docker.sock"
+        COMPOSE_PROJECT_NAME = "qaecommerce"
+        PYTHONUNBUFFERED = "1"
+    }
+
+    parameters {
+        choice(
+            name: 'TEST_SUITE',
+            choices: ['SMOKE', 'REGRESSION', 'API', 'DB', 'UI', 'ALL'],
+            description: 'Select test suite to execute'
+        )
     }
 
     options {
         timestamps()
-        buildDiscarder(logRotator(numToKeepStr: '10'))
+        disableConcurrentBuilds()
+        buildDiscarder(logRotator(numToKeepStr: '15'))
     }
 
     stages {
 
-        stage('Start Docker Engine') {
+        stage('Checkout Code') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Verify Docker') {
             steps {
                 sh '''
-                    if /usr/local/bin/docker info > /dev/null 2>&1; then
-                        echo "OrbStack already running — skipping start"
-                        echo "false" > /tmp/orbstack_state.txt
-                    else
-                        echo "Starting OrbStack..."
-                        open -a OrbStack
-                        echo "true" > /tmp/orbstack_state.txt
-
-                        for i in {1..20}; do
-                            /usr/local/bin/docker info > /dev/null 2>&1 && echo "Docker ready!" && break
-                            echo "Waiting for Docker... attempt $i"
-                            sleep 2
-                        done
-
-                        /usr/local/bin/docker info > /dev/null 2>&1 || {
-                            echo "ERROR: Docker failed to start after 40 seconds"
-                            exit 1
-                        }
-                    fi
+                    docker version
+                    docker compose version
                 '''
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Container') {
             steps {
-                sh '${DOCKER} build -t ${IMAGE_NAME} .'
+                sh 'docker compose build --no-cache'
             }
         }
 
-        stage('Run API Tests in Container') {
+        stage('Run Selected Tests') {
             steps {
-                sh '${DOCKER} run --rm ${IMAGE_NAME} pytest tests/api -v -s'
-            }
-            post {
-                always {
-                    sh '${DOCKER} rmi ${IMAGE_NAME} || true'
-                }
-            }
-        }
+                script {
 
-        stage('Docker Compose Tests') {
-            steps {
-                sh '${DOCKER} compose up --build --abort-on-container-exit'
-            }
-            post {
-                always {
-                    sh '${DOCKER} compose down -v || true'
+                    def cmd = ""
+
+                    if (params.TEST_SUITE == "SMOKE") {
+                        cmd = "pytest tests/ -m smoke -v -s"
+                    }
+                    else if (params.TEST_SUITE == "REGRESSION") {
+                        cmd = "pytest tests/ -m regression -v -s"
+                    }
+                    else if (params.TEST_SUITE == "API") {
+                        cmd = "pytest tests/api -v -s"
+                    }
+                    else if (params.TEST_SUITE == "DB") {
+                        cmd = "pytest tests/db -v -s"
+                    }
+                    else if (params.TEST_SUITE == "UI") {
+                        cmd = "pytest tests/ui -v -s"
+                    }
+                    else {
+                        cmd = "pytest tests/ -v -s"
+                    }
+
+                    sh """
+                        docker compose run --rm qa-tests ${cmd}
+                    """
                 }
             }
         }
     }
 
     post {
+
         success {
-            echo 'Docker pipeline completed successfully.'
+            echo "✅ ${params.TEST_SUITE} tests passed successfully."
         }
+
         failure {
-            echo 'Docker pipeline failed.'
+            echo "❌ ${params.TEST_SUITE} tests failed."
         }
+
         always {
-            echo "Build Result: ${currentBuild.currentResult}"
-
-            sh '${DOCKER} system prune -f || true'
-
             sh '''
-                if [ -f /tmp/orbstack_state.txt ]; then
-                    STATE=$(cat /tmp/orbstack_state.txt)
-                    if [ "$STATE" = "true" ]; then
-                        echo "Jenkins started OrbStack — shutting it down"
-                        osascript -e 'quit app "OrbStack"' || true
-                    else
-                        echo "OrbStack was already running — leaving it open"
-                    fi
-                    rm -f /tmp/orbstack_state.txt
-                fi
+                docker compose down -v || true
+                docker system prune -f || true
             '''
+            archiveArtifacts artifacts: 'reports/**/*', allowEmptyArchive: true
+            echo "Build Result: ${currentBuild.currentResult}"
         }
     }
 }
