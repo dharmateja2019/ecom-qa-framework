@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     environment {
+        PATH = "/usr/local/bin:/opt/homebrew/bin:${env.PATH}"
         DOCKER_HOST = "unix:///Users/dharmateja/.orbstack/run/docker.sock"
         COMPOSE_PROJECT_NAME = "qaecommerce"
         PYTHONUNBUFFERED = "1"
