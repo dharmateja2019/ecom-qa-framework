@@ -93,7 +93,7 @@ pipeline {
                 docker compose down -v || true
                 docker system prune -f || true
             '''
-            archiveArtifacts artifacts: 'reports/**/*', allowEmptyArchive: true
+            archiveArtifacts artifacts: 'reports/**/*,allure-results/**/*', allowEmptyArchive: true
             echo "Build Result: ${currentBuild.currentResult}"
         }
     }
