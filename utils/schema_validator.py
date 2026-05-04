@@ -10,8 +10,8 @@ PRODUCT_SCHEMA_STRICT = {
         "category": {"type": "string"},
         "stock": {"type": "integer"},
         "rating": {"type": "number"},
-        "brand": {"type": "string"}
-    }
+        "brand": {"type": "string"},
+    },
 }
 
 PRODUCT_SCHEMA_RELAXED = {
@@ -24,8 +24,8 @@ PRODUCT_SCHEMA_RELAXED = {
         "category": {"type": "string"},
         "stock": {"type": "integer"},
         "rating": {"type": "number"},
-        "brand": {"type": "string"}  # optional
-    }
+        "brand": {"type": "string"},  # optional
+    },
 }
 
 PRODUCTS_LIST_SCHEMA = {
@@ -34,26 +34,26 @@ PRODUCTS_LIST_SCHEMA = {
     "properties": {
         "products": {
             "type": "array",
-            "items": PRODUCT_SCHEMA_RELAXED  # 👈 IMPORTANT CHANGE
+            "items": PRODUCT_SCHEMA_RELAXED,  # 👈 IMPORTANT CHANGE
         },
         "total": {"type": "integer"},
         "skip": {"type": "integer"},
-        "limit": {"type": "integer"}
-    }
+        "limit": {"type": "integer"},
+    },
 }
 
 AUTH_RESPONSE_SCHEMA = {
     "type": "object",
-    "required": ["accessToken", "refreshToken", "id", 
-                 "username", "email"],
+    "required": ["accessToken", "refreshToken", "id", "username", "email"],
     "properties": {
         "accessToken": {"type": "string", "minLength": 10},
         "refreshToken": {"type": "string", "minLength": 10},
         "id": {"type": "integer"},
         "username": {"type": "string"},
-        "email": {"type": "string"}
-    }
+        "email": {"type": "string"},
+    },
 }
+
 
 def validate_schema(data, schema):
     try:

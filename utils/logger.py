@@ -1,14 +1,13 @@
 import logging
 
+
 def get_logger(name="qa_framework"):
     logger = logging.getLogger(name)
 
     if not logger.handlers:
         logger.setLevel(logging.INFO)
 
-        formatter = logging.Formatter(
-            "%(asctime)s | %(levelname)s | %(message)s"
-        )
+        formatter = logging.Formatter("%(asctime)s | %(levelname)s | %(message)s")
 
         handler = logging.StreamHandler()
         handler.setFormatter(formatter)

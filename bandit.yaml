@@ -1,0 +1,4 @@
+skips:
+  - B101 # asserts in tests
+  - B105 # hardcoded test passwords
+  - B311 # random for test data

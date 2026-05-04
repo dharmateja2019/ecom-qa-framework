@@ -1,0 +1,16 @@
+[MASTER]
+ignore=venv,htmlcov,dist
+
+[[MESSAGES CONTROL]
+disable=
+    C0114,
+    C0115,
+    C0116,
+    R0903,
+    W0603,
+    W1203,  # logging fstring
+    W0718,  # broad exception
+    C0415,  # import outside top-level (useful in tests)
+
+[FORMAT]
+max-line-length=100

@@ -1,13 +1,17 @@
-from faker import Faker
 import random
 
+from faker import Faker
+
 fake = Faker()
+
 
 def create_user_payload():
     gender = random.choice(["male", "female"])
 
     return {
-        "firstName": fake.first_name_female() if gender == "female" else fake.first_name_male(),
+        "firstName": (
+            fake.first_name_female() if gender == "female" else fake.first_name_male()
+        ),
         "lastName": fake.last_name(),
         "maidenName": fake.last_name(),
         "age": random.randint(18, 60),
@@ -24,7 +28,7 @@ def create_user_payload():
         "eyeColor": random.choice(["Brown", "Black", "Blue", "Green"]),
         "hair": {
             "color": random.choice(["Black", "Brown", "Blonde"]),
-            "type": random.choice(["Straight", "Curly", "Wavy"])
+            "type": random.choice(["Straight", "Curly", "Wavy"]),
         },
         "ip": fake.ipv4(),
         "address": {
@@ -35,9 +39,9 @@ def create_user_payload():
             "postalCode": fake.postcode(),
             "coordinates": {
                 "lat": float(fake.latitude()),
-                "lng": float(fake.longitude())
+                "lng": float(fake.longitude()),
             },
-            "country": fake.country()
+            "country": fake.country(),
         },
         "macAddress": fake.mac_address(),
         "university": fake.company(),
@@ -46,7 +50,7 @@ def create_user_payload():
             "cardNumber": fake.credit_card_number(),
             "cardType": fake.credit_card_provider(),
             "currency": random.choice(["USD", "INR", "GBP"]),
-            "iban": fake.iban()
+            "iban": fake.iban(),
         },
         "company": {
             "department": random.choice(["Engineering", "QA", "HR"]),
@@ -60,10 +64,10 @@ def create_user_payload():
                 "postalCode": fake.postcode(),
                 "coordinates": {
                     "lat": float(fake.latitude()),
-                    "lng": float(fake.longitude())
+                    "lng": float(fake.longitude()),
                 },
-                "country": fake.country()
-            }
+                "country": fake.country(),
+            },
         },
         "ein": fake.ssn(),
         "ssn": fake.ssn(),
@@ -71,7 +75,7 @@ def create_user_payload():
         "crypto": {
             "coin": random.choice(["Bitcoin", "Ethereum"]),
             "wallet": fake.sha1(),
-            "network": random.choice(["ERC20", "BEP20"])
+            "network": random.choice(["ERC20", "BEP20"]),
         },
-        "role": random.choice(["admin", "user"])
+        "role": random.choice(["admin", "user"]),
     }

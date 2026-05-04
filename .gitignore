@@ -14,4 +14,7 @@ reports/
 screenshots/
 *.log
 .idea/
-*.iml
+*.iml.coverage
+coverage.xml
+htmlcov/
+test-results.xml
